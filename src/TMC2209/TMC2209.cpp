@@ -901,7 +901,7 @@ uint32_t TMC2209::constrain_(uint32_t value, uint32_t low, uint32_t high)
 }
 
 // Shamelessly stolen from Arudino as part of the port
-long map(long x, long in_min, long in_max, long out_min, long out_max)
+long TMC2209::map(long x, long in_min, long in_max, long out_min, long out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
