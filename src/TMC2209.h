@@ -7,16 +7,8 @@
 
 #ifndef TMC2209_H
 #define TMC2209_H
-#include <Arduino.h>
 
-#if !defined(ESP32) && !defined(ARDUINO_ARCH_SAMD) && !defined(ARDUINO_RASPBERRY_PI_PICO) && !defined(ARDUINO_SAM_DUE)
-#  define SOFTWARE_SERIAL_INCLUDED true
-#else
-#  define SOFTWARE_SERIAL_INCLUDED false
-#endif
-#if SOFTWARE_SERIAL_INCLUDED
-#  include <SoftwareSerial.h>
-#endif
+#include "pico/stdlib.h"
 
 
 class TMC2209
@@ -31,31 +23,12 @@ public:
     SERIAL_ADDRESS_2=2,
     SERIAL_ADDRESS_3=3,
   };
-  // Alternate rx and tx pins may be specified for certain microcontrollers e.g.
-  // ESP32
-  #ifdef ESP32
-  void setup(HardwareSerial & serial,
-    long serial_baud_rate=115200,
-    SerialAddress serial_address=SERIAL_ADDRESS_0,
-    int16_t alternate_rx_pin=-1,
-    int16_t alternate_tx_pin=-1);
-  #else
   // Identify which microcontroller serial port is connected to the TMC2209 e.g.
   // Serial1, Serial2, etc. Optionally identify which serial address is assigned
   // to the TMC2209 if not the default of SERIAL_ADDRESS_0.
-  void setup(HardwareSerial & serial,
+  void setup(uart_inst_t *uart,
     long serial_baud_rate=115200,
     SerialAddress serial_address=SERIAL_ADDRESS_0);
-  #endif
-
-#if SOFTWARE_SERIAL_INCLUDED
-  // Software serial ports should only be used for unidirectional communication
-  // The RX pin does not need to be connected, but it must be specified when
-  // creating an instance of a SoftwareSerial object
-  void setup(SoftwareSerial & serial,
-    long serial_baud_rate=9600,
-    SerialAddress serial_address=SERIAL_ADDRESS_0);
-#endif
 
   // unidirectional methods
 
@@ -232,17 +205,14 @@ public:
   uint16_t getMicrostepCounter();
 
 private:
-  HardwareSerial * hardware_serial_ptr_;
-#if SOFTWARE_SERIAL_INCLUDED
-  SoftwareSerial * software_serial_ptr_;
-#endif
+  uart_inst_t *uart;
   uint32_t serial_baud_rate_;
   uint8_t serial_address_;
   int16_t hardware_enable_pin_;
 
   void initialize(long serial_baud_rate=115200,
     SerialAddress serial_address=SERIAL_ADDRESS_0);
-  int serialAvailable();
+  bool serialAvailable();
   size_t serialWrite(uint8_t c);
   int serialRead();
   void serialFlush();
@@ -593,6 +563,8 @@ private:
   uint32_t readPwmConfigBytes();
 
   uint32_t constrain_(uint32_t value, uint32_t low, uint32_t high);
+  long map(long x, long in_min, long in_max, long out_min, long out_max);
+
 };
 
 #endif
